@@ -18,6 +18,7 @@ import (
 	weakpb "google.golang.org/protobuf/internal/testprotos/test/weak1"
 	pb2 "google.golang.org/protobuf/internal/testprotos/textpb2"
 	pb3 "google.golang.org/protobuf/internal/testprotos/textpb3"
+	pbeditions "google.golang.org/protobuf/internal/testprotos/textpbeditions"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
@@ -70,6 +71,62 @@ opt_string: ""
 			OptBytes:    []byte{},
 			OptString:   proto.String(""),
 		},
+	}, {
+		desc:         "protoeditions explicit scalars set to zero values",
+		inputMessage: &pbeditions.Scalars{},
+		inputText: `opt_bool: false
+opt_int32: 0
+opt_int64: 0
+opt_uint32: 0
+opt_uint64: 0
+opt_sint32: 0
+opt_sint64: 0
+opt_fixed32: 0
+opt_fixed64: 0
+opt_sfixed32: 0
+opt_sfixed64: 0
+opt_float: 0
+opt_double: 0
+opt_bytes: ""
+opt_string: ""
+`,
+		wantMessage: &pbeditions.Scalars{
+			OptBool:     proto.Bool(false),
+			OptInt32:    proto.Int32(0),
+			OptInt64:    proto.Int64(0),
+			OptUint32:   proto.Uint32(0),
+			OptUint64:   proto.Uint64(0),
+			OptSint32:   proto.Int32(0),
+			OptSint64:   proto.Int64(0),
+			OptFixed32:  proto.Uint32(0),
+			OptFixed64:  proto.Uint64(0),
+			OptSfixed32: proto.Int32(0),
+			OptSfixed64: proto.Int64(0),
+			OptFloat:    proto.Float32(0),
+			OptDouble:   proto.Float64(0),
+			OptBytes:    []byte{},
+			OptString:   proto.String(""),
+		},
+	}, {
+		desc:         "protoeditions implicit scalars set to zero values",
+		inputMessage: &pbeditions.ImplicitScalars{},
+		inputText: `s_bool: false
+s_int32: 0
+s_int64: 0
+s_uint32: 0
+s_uint64: 0
+s_sint32: 0
+s_sint64: 0
+s_fixed32: 0
+s_fixed64: 0
+s_sfixed32: 0
+s_sfixed64: 0
+s_float: 0
+s_double: 0
+s_bytes: ""
+s_string: ""
+`,
+		wantMessage: &pbeditions.ImplicitScalars{},
 	}, {
 		desc:         "proto3 scalars set to zero values",
 		inputMessage: &pb3.Scalars{},
@@ -127,15 +184,47 @@ opt_int64: 3735928559
 opt_uint32: 0xff
 opt_uint64: 0xdeadbeef
 opt_sint32: -1001
-opt_sint64: -0xffff
+opt_sint64: -   0xffff
 opt_fixed64: 64
-opt_sfixed32: -32
+opt_sfixed32: -		32
 opt_float: 1.234
 opt_double: 1.23e+100
 opt_bytes: "\xe8\xb0\xb7\xe6\xad\x8c"
 opt_string: "谷歌"
 `,
 		wantMessage: &pb2.Scalars{
+			OptBool:     proto.Bool(true),
+			OptInt32:    proto.Int32(0xff),
+			OptInt64:    proto.Int64(0xdeadbeef),
+			OptUint32:   proto.Uint32(0xff),
+			OptUint64:   proto.Uint64(0xdeadbeef),
+			OptSint32:   proto.Int32(-1001),
+			OptSint64:   proto.Int64(-0xffff),
+			OptFixed64:  proto.Uint64(64),
+			OptSfixed32: proto.Int32(-32),
+			OptFloat:    proto.Float32(1.234),
+			OptDouble:   proto.Float64(1.23e100),
+			OptBytes:    []byte("\xe8\xb0\xb7\xe6\xad\x8c"),
+			OptString:   proto.String("谷歌"),
+		},
+	}, {
+		desc:         "protoeditions explicit scalars",
+		inputMessage: &pbeditions.Scalars{},
+		inputText: `opt_bool: true
+opt_int32: 255
+opt_int64: 3735928559
+opt_uint32: 0xff
+opt_uint64: 0xdeadbeef
+opt_sint32: -1001
+opt_sint64: -   0xffff
+opt_fixed64: 64
+opt_sfixed32: -		32
+opt_float: 1.234
+opt_double: 1.23e+100
+opt_bytes: "\xe8\xb0\xb7\xe6\xad\x8c"
+opt_string: "谷歌"
+`,
+		wantMessage: &pbeditions.Scalars{
 			OptBool:     proto.Bool(true),
 			OptInt32:    proto.Int32(0xff),
 			OptInt64:    proto.Int64(0xdeadbeef),
@@ -164,7 +253,8 @@ s_int64: 3735928559
 s_uint32: 0xff
 s_uint64: 0xdeadbeef
 s_sint32: -1001
-s_sint64: -0xffff
+s_sint64: -  #
+             0xffff
 s_fixed64: 64
 s_sfixed32: -32
 s_float: 1.234
@@ -195,6 +285,13 @@ s_string: "谷歌"
 			OptString: proto.String("abc\xff"),
 		},
 	}, {
+		desc:         "protoeditions unvalidated string with invalid UTF-8",
+		inputMessage: &pbeditions.Scalars{},
+		inputText:    `opt_string: "abc\xff"`,
+		wantMessage: &pbeditions.Scalars{
+			OptString: proto.String("abc\xff"),
+		},
+	}, {
 		desc:         "proto3 string with invalid UTF-8",
 		inputMessage: &pb3.Scalars{},
 		inputText:    `s_string: "abc\xff"`,
@@ -210,9 +307,24 @@ s_string: "谷歌"
 		inputText:    "unknown_field: 456",
 		wantErr:      "unknown field",
 	}, {
+		desc:         "proto2 message contains reserved field name",
+		inputMessage: &pb2.ReservedFieldNames{},
+		inputText:    "reserved_field: 123 reserved_field { nested: 123 } opt_int32: 456",
+		wantMessage:  &pb2.ReservedFieldNames{OptInt32: proto.Int32(456)},
+	}, {
+		desc:         "proto3 message contains reserved field name",
+		inputMessage: &pb3.ReservedFieldNames{},
+		inputText:    "reserved_field: 123 reserved_field { nested: 123 } opt_int32: 456",
+		wantMessage:  &pb3.ReservedFieldNames{OptInt32: 456},
+	}, {
 		desc:         "proto2 message contains discarded unknown field",
 		umo:          prototext.UnmarshalOptions{DiscardUnknown: true},
 		inputMessage: &pb2.Scalars{},
+		inputText:    `unknown_field:123 1000:"hello"`,
+	}, {
+		desc:         "protoeditions message contains discarded unknown field",
+		umo:          prototext.UnmarshalOptions{DiscardUnknown: true},
+		inputMessage: &pbeditions.Scalars{},
 		inputText:    `unknown_field:123 1000:"hello"`,
 	}, {
 		desc:         "proto3 message contains discarded unknown field",
@@ -236,6 +348,11 @@ s_string: "谷歌"
 		inputMessage: &pb2.Scalars{},
 		inputText:    `unknown_field: { strings: [ [ ] ] }`,
 		wantErr:      `(line 1:29): invalid scalar value: [`,
+	}, {
+		desc:         "unknown list of message field",
+		umo:          prototext.UnmarshalOptions{DiscardUnknown: true},
+		inputMessage: &pb2.Scalars{},
+		inputText:    `unknown_field: [ { a: "b" }, { c: "d" } ]`,
 	}, {
 		desc:         "proto3 message cannot parse field number",
 		umo:          prototext.UnmarshalOptions{DiscardUnknown: true},
@@ -307,6 +424,11 @@ s_string: "谷歌"
 		inputMessage: &pb3.Scalars{},
 		inputText:    "s_sfixed64: bad",
 		wantErr:      "invalid value for sfixed64",
+	}, {
+		desc:         "incomplete number value",
+		inputMessage: &pb3.Scalars{},
+		inputText:    `s_int32: - `,
+		wantErr:      "(line 1:10): invalid scalar value: -",
 	}, {
 		desc:         "conformance: FloatFieldMaxValue",
 		inputMessage: &pb2.Scalars{},
@@ -398,6 +520,39 @@ opt_nested_enum: UNO
 			OptNestedEnum: pb2.Enums_UNO.Enum(),
 		},
 	}, {
+		desc:         "protoeditions closed enum",
+		inputMessage: &pbeditions.Enums{},
+		inputText: `
+opt_enum: ONE
+opt_nested_enum: UNO
+`,
+		wantMessage: &pbeditions.Enums{
+			OptEnum:       pbeditions.Enum_ONE.Enum(),
+			OptNestedEnum: pbeditions.Enums_UNO.Enum(),
+		},
+	}, {
+		desc:         "protoeditions open enum",
+		inputMessage: &pbeditions.Enums{},
+		inputText: `
+implicit_enum: EINS
+implicit_nested_enum: ZEHN
+`,
+		wantMessage: &pbeditions.Enums{
+			ImplicitEnum:       pbeditions.OpenEnum_EINS,
+			ImplicitNestedEnum: pbeditions.Enums_ZEHN,
+		},
+	}, {
+		desc:         "protoeditions enum numeric value",
+		inputMessage: &pbeditions.Enums{},
+		inputText: `
+implicit_enum: 1
+implicit_nested_enum: 10
+`,
+		wantMessage: &pbeditions.Enums{
+			ImplicitEnum:       pbeditions.OpenEnum_EINS,
+			ImplicitNestedEnum: pbeditions.Enums_ZEHN,
+		},
+	}, {
 		desc:         "proto2 enum set to numeric values",
 		inputMessage: &pb2.Enums{},
 		inputText: `
@@ -472,6 +627,19 @@ OptGroup: {}
 			Optgroup:  &pb2.Nests_OptGroup{},
 		},
 	}, {
+		desc:         "protoeditions nested empty messages",
+		inputMessage: &pbeditions.Nests{},
+		inputText: `
+opt_nested: {}
+OptGroup: {}
+delimited_field: {}
+`,
+		wantMessage: &pbeditions.Nests{
+			OptNested:      &pbeditions.Nested{},
+			Optgroup:       &pbeditions.Nests_OptGroup{},
+			DelimitedField: &pbeditions.Nests_OptGroup{},
+		},
+	}, {
 		desc:         "message fields with no field separator",
 		inputMessage: &pb2.Nests{},
 		inputText: `
@@ -483,10 +651,37 @@ OptGroup {}
 			Optgroup:  &pb2.Nests_OptGroup{},
 		},
 	}, {
+		desc:         "message fields with no field separator",
+		inputMessage: &pbeditions.Nests{},
+		inputText: `
+opt_nested {}
+OptGroup {}
+delimited_field {}
+`,
+		wantMessage: &pbeditions.Nests{
+			OptNested:      &pbeditions.Nested{},
+			Optgroup:       &pbeditions.Nests_OptGroup{},
+			DelimitedField: &pbeditions.Nests_OptGroup{},
+		},
+	}, {
 		desc:         "group field name",
 		inputMessage: &pb2.Nests{},
 		inputText:    `optgroup: {}`,
-		wantErr:      "unknown field: optgroup",
+		wantMessage: &pb2.Nests{
+			Optgroup: &pb2.Nests_OptGroup{},
+		},
+	}, {
+		desc:         "delimited encoded group-like message field name",
+		inputMessage: &pbeditions.Nests{},
+		inputText:    `optgroup {}`,
+		wantMessage: &pbeditions.Nests{
+			Optgroup: &pbeditions.Nests_OptGroup{},
+		},
+	}, {
+		desc:         "delimited encoded message field name",
+		inputMessage: &pbeditions.Nests{},
+		inputText:    `Delimited_Field: {}`,
+		wantErr:      "unknown field: Delimited_Field",
 	}, {
 		desc:         "proto2 nested messages",
 		inputMessage: &pb2.Nests{},
@@ -502,6 +697,25 @@ opt_nested: {
 			OptNested: &pb2.Nested{
 				OptString: proto.String("nested message"),
 				OptNested: &pb2.Nested{
+					OptString: proto.String("another nested message"),
+				},
+			},
+		},
+	}, {
+		desc:         "protoeditions delimited encoded nested messages",
+		inputMessage: &pbeditions.Nests{},
+		inputText: `
+opt_nested: {
+  opt_string: "nested message"
+  opt_nested: {
+    opt_string: "another nested message"
+  }
+}
+`,
+		wantMessage: &pbeditions.Nests{
+			OptNested: &pbeditions.Nested{
+				OptString: proto.String("nested message"),
+				OptNested: &pbeditions.Nested{
 					OptString: proto.String("another nested message"),
 				},
 			},
@@ -694,6 +908,24 @@ RptGroup: {}
 `,
 		wantMessage: &pb2.Nests{
 			Rptgroup: []*pb2.Nests_RptGroup{
+				{
+					RptString: []string{"hello", "world"},
+				},
+				{},
+			},
+		},
+	}, {
+		desc:         "repeated delimited encoded message fields",
+		inputMessage: &pbeditions.Nests{},
+		inputText: `
+RptGroup: {
+  rpt_string: "hello"
+  rpt_string: "world"
+}
+RptGroup: {}
+`,
+		wantMessage: &pbeditions.Nests{
+			Rptgroup: []*pbeditions.Nests_RptGroup{
 				{
 					RptString: []string{"hello", "world"},
 				},

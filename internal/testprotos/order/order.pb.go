@@ -25,6 +25,7 @@ type Message struct {
 	Field_2 *string `protobuf:"bytes,2,opt,name=field_2,json=field2" json:"field_2,omitempty"`
 	Field_1 *string `protobuf:"bytes,1,opt,name=field_1,json=field1" json:"field_1,omitempty"`
 	// Types that are assignable to Oneof_1:
+	//
 	//	*Message_Field_10
 	Oneof_1  isMessage_Oneof_1 `protobuf_oneof:"oneof_1"`
 	Field_20 *string           `protobuf:"bytes,20,opt,name=field_20,json=field20" json:"field_20,omitempty"`
@@ -32,11 +33,9 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_internal_testprotos_order_order_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_internal_testprotos_order_order_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *Message) String() string {
@@ -47,7 +46,7 @@ func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_testprotos_order_order_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -189,7 +188,7 @@ func file_internal_testprotos_order_order_proto_rawDescGZIP() []byte {
 }
 
 var file_internal_testprotos_order_order_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_internal_testprotos_order_order_proto_goTypes = []interface{}{
+var file_internal_testprotos_order_order_proto_goTypes = []any{
 	(*Message)(nil), // 0: goproto.proto.order.Message
 }
 var file_internal_testprotos_order_order_proto_depIdxs = []int32{
@@ -208,23 +207,7 @@ func file_internal_testprotos_order_order_proto_init() {
 	if File_internal_testprotos_order_order_proto != nil {
 		return
 	}
-	if !protoimpl.UnsafeEnabled {
-		file_internal_testprotos_order_order_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Message); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			case 3:
-				return &v.extensionFields
-			default:
-				return nil
-			}
-		}
-	}
-	file_internal_testprotos_order_order_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_internal_testprotos_order_order_proto_msgTypes[0].OneofWrappers = []any{
 		(*Message_Field_10)(nil),
 	}
 	type x struct{}

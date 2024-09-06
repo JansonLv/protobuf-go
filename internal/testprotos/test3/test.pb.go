@@ -204,6 +204,7 @@ type TestAllTypes struct {
 	MapStringNestedMessage map[string]*TestAllTypes_NestedMessage `protobuf:"bytes,71,rep,name=map_string_nested_message,json=mapStringNestedMessage,proto3" json:"map_string_nested_message,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	MapStringNestedEnum    map[string]TestAllTypes_NestedEnum     `protobuf:"bytes,73,rep,name=map_string_nested_enum,json=mapStringNestedEnum,proto3" json:"map_string_nested_enum,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=goproto.proto.test3.TestAllTypes_NestedEnum"`
 	// Types that are assignable to OneofField:
+	//
 	//	*TestAllTypes_OneofUint32
 	//	*TestAllTypes_OneofNestedMessage
 	//	*TestAllTypes_OneofString
@@ -218,11 +219,9 @@ type TestAllTypes struct {
 
 func (x *TestAllTypes) Reset() {
 	*x = TestAllTypes{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_internal_testprotos_test3_test_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_internal_testprotos_test3_test_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *TestAllTypes) String() string {
@@ -233,7 +232,7 @@ func (*TestAllTypes) ProtoMessage() {}
 
 func (x *TestAllTypes) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_testprotos_test3_test_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -947,11 +946,9 @@ type ForeignMessage struct {
 
 func (x *ForeignMessage) Reset() {
 	*x = ForeignMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_internal_testprotos_test3_test_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_internal_testprotos_test3_test_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *ForeignMessage) String() string {
@@ -962,7 +959,7 @@ func (*ForeignMessage) ProtoMessage() {}
 
 func (x *ForeignMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_testprotos_test3_test_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -1002,11 +999,9 @@ type TestAllTypes_NestedMessage struct {
 
 func (x *TestAllTypes_NestedMessage) Reset() {
 	*x = TestAllTypes_NestedMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_internal_testprotos_test3_test_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_internal_testprotos_test3_test_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *TestAllTypes_NestedMessage) String() string {
@@ -1017,7 +1012,7 @@ func (*TestAllTypes_NestedMessage) ProtoMessage() {}
 
 func (x *TestAllTypes_NestedMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_testprotos_test3_test_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -1565,7 +1560,7 @@ func file_internal_testprotos_test3_test_proto_rawDescGZIP() []byte {
 
 var file_internal_testprotos_test3_test_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_internal_testprotos_test3_test_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
-var file_internal_testprotos_test3_test_proto_goTypes = []interface{}{
+var file_internal_testprotos_test3_test_proto_goTypes = []any{
 	(ForeignEnum)(0),                   // 0: goproto.proto.test3.ForeignEnum
 	(TestAllTypes_NestedEnum)(0),       // 1: goproto.proto.test3.TestAllTypes.NestedEnum
 	(*TestAllTypes)(nil),               // 2: goproto.proto.test3.TestAllTypes
@@ -1645,45 +1640,7 @@ func file_internal_testprotos_test3_test_proto_init() {
 		return
 	}
 	file_internal_testprotos_test3_test_import_proto_init()
-	if !protoimpl.UnsafeEnabled {
-		file_internal_testprotos_test3_test_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TestAllTypes); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_internal_testprotos_test3_test_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ForeignMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_internal_testprotos_test3_test_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TestAllTypes_NestedMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
-	file_internal_testprotos_test3_test_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_internal_testprotos_test3_test_proto_msgTypes[0].OneofWrappers = []any{
 		(*TestAllTypes_OneofUint32)(nil),
 		(*TestAllTypes_OneofNestedMessage)(nil),
 		(*TestAllTypes_OneofString)(nil),

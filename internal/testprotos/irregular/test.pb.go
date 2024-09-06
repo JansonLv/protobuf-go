@@ -28,6 +28,7 @@ type Message struct {
 	RequiredMessage *IrregularMessage            `protobuf:"bytes,3,req,name=required_message,json=requiredMessage" json:"required_message,omitempty"`
 	MapMessage      map[string]*IrregularMessage `protobuf:"bytes,4,rep,name=map_message,json=mapMessage" json:"map_message,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Types that are assignable to Union:
+	//
 	//	*Message_OneofMessage
 	//	*Message_OneofAberrantMessage
 	Union                   isMessage_Union             `protobuf_oneof:"union"`
@@ -39,11 +40,9 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_internal_testprotos_irregular_test_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_internal_testprotos_irregular_test_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *Message) String() string {
@@ -54,7 +53,7 @@ func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_testprotos_irregular_test_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -265,7 +264,7 @@ func file_internal_testprotos_irregular_test_proto_rawDescGZIP() []byte {
 }
 
 var file_internal_testprotos_irregular_test_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_internal_testprotos_irregular_test_proto_goTypes = []interface{}{
+var file_internal_testprotos_irregular_test_proto_goTypes = []any{
 	(*Message)(nil),          // 0: goproto.proto.irregular.Message
 	nil,                      // 1: goproto.proto.irregular.Message.MapMessageEntry
 	nil,                      // 2: goproto.proto.irregular.Message.MapAberrantMessageEntry
@@ -298,21 +297,7 @@ func file_internal_testprotos_irregular_test_proto_init() {
 		return
 	}
 	file_internal_testprotos_irregular_irregular_proto_init()
-	if !protoimpl.UnsafeEnabled {
-		file_internal_testprotos_irregular_test_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Message); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
-	file_internal_testprotos_irregular_test_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_internal_testprotos_irregular_test_proto_msgTypes[0].OneofWrappers = []any{
 		(*Message_OneofMessage)(nil),
 		(*Message_OneofAberrantMessage)(nil),
 	}

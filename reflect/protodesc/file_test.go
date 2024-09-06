@@ -15,6 +15,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 
+	"google.golang.org/protobuf/internal/filedesc"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
@@ -46,6 +47,49 @@ var (
 			field: [
 				{name:"foo" number:1 label:LABEL_OPTIONAL type:TYPE_STRING},
 				{name:"bar" number:2 label:LABEL_OPTIONAL type:TYPE_STRING}
+			]
+		}]
+	`)
+	protoEdition2023Message = mustParseFile(`
+		syntax:    "editions"
+		edition:   EDITION_2023
+		name:      "proto_editions_2023_message.proto"
+		package:   "test.editions2023"
+		options: {
+			features: {
+				field_presence: IMPLICIT
+			}
+		}
+		message_type: [{
+			name:  "Message"
+			field: [
+				{name:"foo" number:1 type:TYPE_STRING},
+				{name:"bar" number:2 type:TYPE_STRING}
+			]
+		}]
+	`)
+	protoEdition2024Message = mustParseFile(`
+		syntax:    "editions"
+		edition:   EDITION_2024
+		name:      "proto_editions_2024_message.proto"
+		package:   "test.editions2024"
+		message_type: [{
+			name:  "Message"
+			field: [
+				{
+					name:"foo" number:1
+					type:TYPE_STRING
+				},
+				{
+					name:"bar" number:2
+					type:TYPE_STRING
+					options: {
+						features: {
+							field_presence: IMPLICIT
+							utf8_validation: NONE
+						}
+					}
+				}
 			]
 		}]
 	`)
@@ -377,6 +421,44 @@ func TestNewFile(t *testing.T) {
 			}]
 		`),
 	}, {
+		label: "basic editions tests",
+		inDesc: mustParseFile(`
+			syntax: "editions"
+			edition: EDITION_2023
+			name: "test.proto"
+			package: "fizz"
+		`),
+		wantDesc: mustParseFile(`
+			syntax: "editions"
+			edition: EDITION_2023
+			name: "test.proto"
+			package: "fizz"
+		`),
+	}, {
+		label: "proto3 message fields conflict",
+		inDesc: mustParseFile(`
+			syntax:  "proto3"
+			name:    "test.proto"
+			message_type: [{name:"M" nested_type:[{
+				name: "M"
+				field: [
+					{name:"_b_a_z_" number:1 label:LABEL_OPTIONAL type:TYPE_STRING},
+					{name:"baz" number:2 label:LABEL_OPTIONAL type:TYPE_STRING}
+				]
+			}]}]
+		`),
+		wantDesc: mustParseFile(`
+			syntax:  "proto3"
+			name:    "test.proto"
+			message_type: [{name:"M" nested_type:[{
+				name: "M"
+				field: [
+					{name:"_b_a_z_" number:1 label:LABEL_OPTIONAL type:TYPE_STRING},
+					{name:"baz" number:2 label:LABEL_OPTIONAL type:TYPE_STRING}
+				]
+			}]}]
+		`),
+	}, {
 		label: "namespace conflict on enum value",
 		inDesc: mustParseFile(`
 			name:    "test.proto"
@@ -548,7 +630,7 @@ func TestNewFile(t *testing.T) {
 				value: [{name:"baz" number:500}]
 			}]}]
 		`),
-		wantErr: `enum "M.baz" using proto3 semantics must have zero number for the first value`,
+		wantErr: `enum "M.baz" using open semantics must have zero number for the first value`,
 	}, {
 		label: "valid proto3 enum",
 		inDesc: mustParseFile(`
@@ -569,7 +651,7 @@ func TestNewFile(t *testing.T) {
 				value: [{name:"e_Foo" number:0}, {name:"fOo" number:1}]
 			}]}]
 		`),
-		wantErr: `enum "M.E" using proto3 semantics has conflict: "fOo" with "e_Foo"`,
+		wantErr: `enum "M.E" using open semantics has conflict: "fOo" with "e_Foo"`,
 	}, {
 		label: "proto2 enum has name prefix check",
 		inDesc: mustParseFile(`
@@ -760,20 +842,6 @@ func TestNewFile(t *testing.T) {
 		`),
 		wantErr: `message "M.M" using proto3 semantics cannot have extension ranges`,
 	}, {
-		label: "proto3 message fields conflict",
-		inDesc: mustParseFile(`
-			syntax:  "proto3"
-			name:    "test.proto"
-			message_type: [{name:"M" nested_type:[{
-				name: "M"
-				field: [
-					{name:"_b_a_z_" number:1 label:LABEL_OPTIONAL type:TYPE_STRING},
-					{name:"baz" number:2 label:LABEL_OPTIONAL type:TYPE_STRING}
-				]
-			}]}]
-		`),
-		wantErr: `message "M.M" using proto3 semantics has conflict: "baz" with "_b_a_z_"`,
-	}, {
 		label: "proto3 message fields",
 		inDesc: mustParseFile(`
 			syntax:  "proto3"
@@ -784,6 +852,29 @@ func TestNewFile(t *testing.T) {
 				oneof_decl: [{name:"baz"}] # proto3 name conflict logic does not include oneof
 			}]}]
 		`),
+	}, {
+		label: "proto3 message field with defaults",
+		inDesc: mustParseFile(`
+			syntax:  "proto3"
+			name:    "test.proto"
+			message_type: [{name:"M" nested_type:[{
+				name:       "M"
+				field:      [{name:"a" number:1 type:TYPE_STRING default_value:"abc"}]
+			}]}]
+		`),
+		wantErr: `message field "M.M.a" has invalid default: cannot be specified with implicit field presence`,
+	}, {
+		label: "proto editions implicit presence field with defaults",
+		inDesc: mustParseFile(`
+			syntax:    "editions"
+			edition:   EDITION_2023
+			name:    "test.proto"
+			message_type: [{name:"M" nested_type:[{
+				name:       "M"
+				field:      [{name:"a" number:1 type:TYPE_STRING default_value:"abc" options:{features:{field_presence:IMPLICIT}}}]
+			}]}]
+		`),
+		wantErr: `message field "M.M.a" has invalid default: cannot be specified with implicit field presence`,
 	}, {
 		label: "proto2 message fields with no conflict",
 		inDesc: mustParseFile(`
@@ -1178,5 +1269,14 @@ func TestSourceLocations(t *testing.T) {
 	})
 	if numDescs != 30 {
 		t.Errorf("visited %d descriptor, expected 30", numDescs)
+	}
+}
+
+func TestToFileDescriptorProtoPlaceHolder(t *testing.T) {
+	// Make sure placeholders produce valid protos.
+	fileDescriptor := ToFileDescriptorProto(filedesc.PlaceholderFile("foo/test.proto"))
+	_, err := NewFile(fileDescriptor, &protoregistry.Files{} /* empty files since placeholder has no deps */)
+	if err != nil {
+		t.Errorf("placeholder file descriptor proto is not valid: %s", err)
 	}
 }

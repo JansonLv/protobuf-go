@@ -45,28 +45,29 @@ type Message struct {
 	// Oneof that conflicts with its first field: The oneof is renamed.
 	//
 	// Types that are assignable to OneofConflictA_:
+	//
 	//	*Message_OneofConflictA
 	OneofConflictA_ isMessage_OneofConflictA_ `protobuf_oneof:"oneof_conflict_a"`
 	// Oneof that conflicts with its second field: The field is renamed.
 	//
 	// Types that are assignable to OneofConflictB:
+	//
 	//	*Message_OneofNoConflict
 	//	*Message_OneofConflictB_
 	OneofConflictB isMessage_OneofConflictB `protobuf_oneof:"oneof_conflict_b"`
 	// Oneof with a field name that conflicts with a nested message.
 	//
 	// Types that are assignable to OneofConflictC:
+	//
 	//	*Message_OneofMessageConflict_
 	OneofConflictC isMessage_OneofConflictC `protobuf_oneof:"oneof_conflict_c"`
 }
 
 func (x *Message) Reset() {
 	*x = Message{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *Message) String() string {
@@ -77,7 +78,7 @@ func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
 	mi := &file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -283,11 +284,9 @@ type Message_OneofMessageConflict struct {
 
 func (x *Message_OneofMessageConflict) Reset() {
 	*x = Message_OneofMessageConflict{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *Message_OneofMessageConflict) String() string {
@@ -298,7 +297,7 @@ func (*Message_OneofMessageConflict) ProtoMessage() {}
 
 func (x *Message_OneofMessageConflict) ProtoReflect() protoreflect.Message {
 	mi := &file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -385,7 +384,7 @@ func file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_rawDescGZIP() [
 }
 
 var file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_goTypes = []interface{}{
+var file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_goTypes = []any{
 	(*Message)(nil),                      // 0: goproto.protoc.fieldnames.Message
 	(*Message_OneofMessageConflict)(nil), // 1: goproto.protoc.fieldnames.Message.OneofMessageConflict
 }
@@ -402,33 +401,7 @@ func file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_init() {
 	if File_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto != nil {
 		return
 	}
-	if !protoimpl.UnsafeEnabled {
-		file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Message); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Message_OneofMessageConflict); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
-	file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_cmd_protoc_gen_go_testdata_fieldnames_fieldnames_proto_msgTypes[0].OneofWrappers = []any{
 		(*Message_OneofConflictA)(nil),
 		(*Message_OneofNoConflict)(nil),
 		(*Message_OneofConflictB_)(nil),

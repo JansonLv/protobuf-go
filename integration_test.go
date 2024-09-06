@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-//go:build ignore
-// +build ignore
-
 package main
 
 import (
@@ -16,13 +13,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"testing"
@@ -35,38 +33,55 @@ var (
 	regenerate   = flag.Bool("regenerate", false, "regenerate files")
 	buildRelease = flag.Bool("buildRelease", false, "build release binaries")
 
-	protobufVersion = "21.5"
-	protobufSHA256  = "" // ignored if protobufVersion is a git hash
+	protobufVersion = "27.0"
 
 	golangVersions = func() []string {
-		var vers []string
-		switch runtime.GOOS + "/" + runtime.GOARCH {
-		case "darwin/arm64":
-		default:
-			vers = []string{"1.13.15", "1.14.15", "1.15.15"}
+		// Version policy: oldest supported version of Go, plus the version before that.
+		// This matches the version policy of the Google Cloud Client Libraries:
+		// https://cloud.google.com/go/getting-started/supported-go-versions
+		return []string{
+			"1.21.13",
+			"1.22.6",
+			"1.23.0",
 		}
-		return append(vers, "1.16.15", "1.17.12", "1.18.4")
 	}()
 	golangLatest = golangVersions[len(golangVersions)-1]
 
-	staticcheckVersion = "2022.1.2"
+	staticcheckVersion = "2024.1.1"
 	staticcheckSHA256s = map[string]string{
-		"darwin/amd64": "baa35f8fb967ee2aacad57f026e3724fbf8d9b7ad8f682f4d44b2084a96e103b",
-		"darwin/arm64": "9f01a581eeea088d0a6272538360f6d84996d66ae554bfada8026fe24991daa0",
-		"linux/386":    "4cf74373e5d668b265d7a241b59ba7d26064f2cd6af50b77e62c2b3e2f3afb43",
-		"linux/amd64":  "6dbb7187e43812fa23363cdaaa90ab13544dd36e24d02e2347014e4cf265f06d",
+		"darwin/amd64": "b67380b84b81d5765b478b7ad888dd7ce53b2c0861103bafa946ac84dc9244ce",
+		"darwin/arm64": "09cb10e4199f7c6356c2ed5dc45e877c3087ef775d84d39338b52e1a94866074",
+		"linux/386":    "0225fd8b5cf6c762f9c0aedf1380ed4df576d1d54fb68691be895889e10faf0b",
+		"linux/amd64":  "6e9398fcaff2b36e1d15e84a647a3a14733b7c2dd41187afa2c182a4c3b32180",
 	}
 
 	// purgeTimeout determines the maximum age of unused sub-directories.
 	purgeTimeout = 30 * 24 * time.Hour // 1 month
 
 	// Variables initialized by mustInitDeps.
-	goPath       string
 	modulePath   string
 	protobufPath string
 )
 
-func Test(t *testing.T) {
+func TestIntegration(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test in short mode")
+	}
+	if os.Getenv("GO_BUILDER_NAME") != "" {
+		// To start off, run on longtest builders, not longtest-race ones.
+		if race() {
+			t.Skip("skipping integration test in race mode on builders")
+		}
+		// When on a builder, run even if it's not explicitly requested
+		// provided our caller isn't already running it.
+		if os.Getenv("GO_PROTOBUF_INTEGRATION_TEST_RUNNING") == "1" {
+			t.Skip("protobuf integration test is already running, skipping nested invocation")
+		}
+		os.Setenv("GO_PROTOBUF_INTEGRATION_TEST_RUNNING", "1")
+	} else if flag.Lookup("test.run").Value.String() != "^TestIntegration$" {
+		t.Skip("not running integration test if not explicitly requested via test.bash")
+	}
+
 	mustInitDeps(t)
 	mustHandleFlags(t)
 
@@ -124,19 +139,18 @@ func Test(t *testing.T) {
 			}()
 		}
 
-		workDir := filepath.Join(goPath, "src", modulePath)
-		runGo("Normal", command{Dir: workDir}, "go", "test", "-race", "./...")
-		runGo("PureGo", command{Dir: workDir}, "go", "test", "-race", "-tags", "purego", "./...")
-		runGo("Reflect", command{Dir: workDir}, "go", "test", "-race", "-tags", "protoreflect", "./...")
+		runGo("Normal", command{}, "go", "test", "-race", "./...")
+		runGo("Reflect", command{}, "go", "test", "-race", "-tags", "protoreflect", "./...")
 		if goVersion == golangLatest {
-			runGo("ProtoLegacy", command{Dir: workDir}, "go", "test", "-race", "-tags", "protolegacy", "./...")
+			runGo("ProtoLegacyRace", command{}, "go", "test", "-race", "-tags", "protolegacy", "./...")
+			runGo("ProtoLegacy", command{}, "go", "test", "-tags", "protolegacy", "./...")
 			runGo("ProtocGenGo", command{Dir: "cmd/protoc-gen-go/testdata"}, "go", "test")
 			runGo("Conformance", command{Dir: "internal/conformance"}, "go", "test", "-execute")
 
 			// Only run the 32-bit compatibility tests for Linux;
 			// avoid Darwin since 10.15 dropped support i386 code execution.
 			if runtime.GOOS == "linux" {
-				runGo("Arch32Bit", command{Dir: workDir, Env: append(os.Environ(), "GOARCH=386")}, "go", "test", "./...")
+				runGo("Arch32Bit", command{Env: append(os.Environ(), "GOARCH=386")}, "go", "test", "./...")
 			}
 		}
 	}
@@ -146,7 +160,7 @@ func Test(t *testing.T) {
 		checks := []string{
 			"all",     // start with all checks enabled
 			"-SA1019", // disable deprecated usage check
-			"-S*",     // disable code simplication checks
+			"-S*",     // disable code simplification checks
 			"-ST*",    // disable coding style checks
 			"-U*",     // disable unused declaration checks
 		}
@@ -212,14 +226,16 @@ func mustInitDeps(t *testing.T) {
 	// Delete other sub-directories that are no longer relevant.
 	defer func() {
 		now := time.Now()
-		fis, _ := ioutil.ReadDir(testDir)
+		fis, _ := os.ReadDir(testDir)
 		for _, fi := range fis {
 			dir := filepath.Join(testDir, fi.Name())
 			if finishedDirs[dir] {
 				os.Chtimes(dir, now, now) // best-effort
 				continue
 			}
-			if now.Sub(fi.ModTime()) < purgeTimeout {
+			fii, err := fi.Info()
+			check(err)
+			if now.Sub(fii.ModTime()) < purgeTimeout {
 				continue
 			}
 			fmt.Printf("delete %v\n", fi.Name())
@@ -238,29 +254,58 @@ func mustInitDeps(t *testing.T) {
 	}
 	finishWork()
 
-	// Download and build the protobuf toolchain.
-	// We avoid downloading the pre-compiled binaries since they do not contain
-	// the conformance test runner.
+	// Get the protobuf toolchain.
 	protobufPath = startWork("protobuf-" + protobufVersion)
 	if _, err := os.Stat(protobufPath); err != nil {
 		fmt.Printf("download %v\n", filepath.Base(protobufPath))
-		if isCommit := strings.Trim(protobufVersion, "0123456789abcdef") == ""; isCommit {
-			command{Dir: testDir}.mustRun(t, "git", "clone", "https://github.com/protocolbuffers/protobuf", "protobuf-"+protobufVersion)
-			command{Dir: protobufPath}.mustRun(t, "git", "checkout", protobufVersion)
-		} else {
-			url := fmt.Sprintf("https://github.com/google/protobuf/releases/download/v%v/protobuf-all-%v.tar.gz", protobufVersion, protobufVersion)
-			downloadArchive(check, protobufPath, url, "protobuf-"+protobufVersion, protobufSHA256)
+		checkoutVersion := protobufVersion
+		if isCommit := strings.Trim(protobufVersion, "0123456789abcdef") == ""; !isCommit {
+			// release tags have "v" prefix
+			checkoutVersion = "v" + protobufVersion
 		}
+		command{Dir: testDir}.mustRun(t, "git", "clone", "https://github.com/protocolbuffers/protobuf", "protobuf-"+protobufVersion)
+		command{Dir: protobufPath}.mustRun(t, "git", "checkout", checkoutVersion)
 
-		fmt.Printf("build %v\n", filepath.Base(protobufPath))
-		command{Dir: protobufPath}.mustRun(t, "./autogen.sh")
-		command{Dir: protobufPath}.mustRun(t, "./configure")
-		command{Dir: protobufPath}.mustRun(t, "make")
-		command{Dir: filepath.Join(protobufPath, "conformance")}.mustRun(t, "make")
+		if os.Getenv("GO_BUILDER_NAME") != "" {
+			// If this is running on the Go build infrastructure,
+			// use pre-built versions of these binaries that the
+			// builders are configured to provide in $PATH.
+			protocPath, err := exec.LookPath("protoc")
+			check(err)
+			confTestRunnerPath, err := exec.LookPath("conformance_test_runner")
+			check(err)
+			check(os.MkdirAll(filepath.Join(protobufPath, "bazel-bin", "conformance"), 0775))
+			check(os.Symlink(protocPath, filepath.Join(protobufPath, "bazel-bin", "protoc")))
+			check(os.Symlink(confTestRunnerPath, filepath.Join(protobufPath, "bazel-bin", "conformance", "conformance_test_runner")))
+		} else {
+			// In other environments, download and build the protobuf toolchain.
+			// We avoid downloading the pre-compiled binaries since they do not contain
+			// the conformance test runner.
+			fmt.Printf("build %v\n", filepath.Base(protobufPath))
+			env := os.Environ()
+			args := []string{
+				"bazel", "build",
+				":protoc",
+				"//conformance:conformance_test_runner",
+			}
+			if runtime.GOOS == "darwin" {
+				// Adding this environment variable appears to be necessary for macOS builds.
+				env = append(env, "CC=clang")
+				// And this flag.
+				args = append(args,
+					"--macos_minimum_os=13.0",
+					"--host_macos_minimum_os=13.0",
+				)
+			}
+			command{
+				Dir: protobufPath,
+				Env: env,
+			}.mustRun(t, args...)
+		}
 	}
 	check(os.Setenv("PROTOBUF_ROOT", protobufPath)) // for generate-protos
-	registerBinary("conform-test-runner", filepath.Join(protobufPath, "conformance", "conformance-test-runner"))
-	registerBinary("protoc", filepath.Join(protobufPath, "src", "protoc"))
+	registerBinary("conform-test-runner", filepath.Join(protobufPath, "bazel-bin", "conformance", "conformance_test_runner"))
+	registerBinary("protoc", filepath.Join(protobufPath, "bazel-bin", "protoc"))
 	finishWork()
 
 	// Download each Go toolchain version.
@@ -293,30 +338,25 @@ func mustInitDeps(t *testing.T) {
 
 	// Set a cache directory outside the test directory.
 	check(os.Setenv("GOCACHE", filepath.Join(repoRoot, ".gocache")))
-
-	// Setup GOPATH for pre-module support (i.e., go1.10 and earlier).
-	goPath = startWork("gopath")
-	modulePath = strings.TrimSpace(command{Dir: testDir}.mustRun(t, "go", "list", "-m", "-f", "{{.Path}}"))
-	check(os.RemoveAll(filepath.Join(goPath, "src")))
-	check(os.MkdirAll(filepath.Join(goPath, "src", filepath.Dir(modulePath)), 0775))
-	check(os.Symlink(repoRoot, filepath.Join(goPath, "src", modulePath)))
-	command{Dir: repoRoot}.mustRun(t, "go", "mod", "tidy")
-	command{Dir: repoRoot}.mustRun(t, "go", "mod", "vendor")
-	check(os.Setenv("GOPATH", goPath))
-	finishWork()
 }
 
-func downloadFile(check func(error), dstPath, srcURL string) {
+func downloadFile(check func(error), dstPath, srcURL string, perm fs.FileMode) {
 	resp, err := http.Get(srcURL)
 	check(err)
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<10))
+		check(fmt.Errorf("GET %q: non-200 OK status code: %v body: %q", srcURL, resp.Status, body))
+	}
 
 	check(os.MkdirAll(filepath.Dir(dstPath), 0775))
-	f, err := os.Create(dstPath)
+	f, err := os.OpenFile(dstPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	check(err)
 
 	_, err = io.Copy(f, resp.Body)
 	check(err)
+
+	check(f.Close())
 }
 
 func downloadArchive(check func(error), dstPath, srcURL, skipPrefix, wantSHA256 string) {
@@ -325,10 +365,14 @@ func downloadArchive(check func(error), dstPath, srcURL, skipPrefix, wantSHA256 
 	resp, err := http.Get(srcURL)
 	check(err)
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<10))
+		check(fmt.Errorf("GET %q: non-200 OK status code: %v body: %q", srcURL, resp.Status, body))
+	}
 
 	var r io.Reader = resp.Body
 	if wantSHA256 != "" {
-		b, err := ioutil.ReadAll(resp.Body)
+		b, err := io.ReadAll(resp.Body)
 		check(err)
 		r = bytes.NewReader(b)
 
@@ -363,9 +407,9 @@ func downloadArchive(check func(error), dstPath, srcURL, skipPrefix, wantSHA256 
 		mode := os.FileMode(h.Mode & 0777)
 		switch h.Typeflag {
 		case tar.TypeReg:
-			b, err := ioutil.ReadAll(tr)
+			b, err := io.ReadAll(tr)
 			check(err)
-			check(ioutil.WriteFile(path, b, mode))
+			check(os.WriteFile(path, b, mode))
 		case tar.TypeDir:
 			check(os.Mkdir(path, mode))
 		}
@@ -375,8 +419,8 @@ func downloadArchive(check func(error), dstPath, srcURL, skipPrefix, wantSHA256 
 func mustHandleFlags(t *testing.T) {
 	if *regenerate {
 		t.Run("Generate", func(t *testing.T) {
-			fmt.Print(mustRunCommand(t, "go", "run", "-tags", "protolegacy", "./internal/cmd/generate-types", "-execute"))
-			fmt.Print(mustRunCommand(t, "go", "run", "-tags", "protolegacy", "./internal/cmd/generate-protos", "-execute"))
+			fmt.Print(mustRunCommand(t, "go", "generate", "./internal/cmd/generate-types"))
+			fmt.Print(mustRunCommand(t, "go", "generate", "./internal/cmd/generate-protos"))
 			files := strings.Split(strings.TrimSpace(mustRunCommand(t, "git", "ls-files", "*.go")), "\n")
 			mustRunCommand(t, append([]string{"gofmt", "-w"}, files...)...)
 		})
@@ -398,7 +442,7 @@ func mustHandleFlags(t *testing.T) {
 					cmd.mustRun(t, "go", "build", "-trimpath", "-ldflags", "-s -w -buildid=", "-o", binPath, "./cmd/protoc-gen-go")
 
 					// Archive and compress the binary.
-					in, err := ioutil.ReadFile(binPath)
+					in, err := os.ReadFile(binPath)
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -427,7 +471,7 @@ func mustHandleFlags(t *testing.T) {
 						tw.Close()
 						gz.Close()
 					}
-					if err := ioutil.WriteFile(binPath+suffix, out.Bytes(), 0664); err != nil {
+					if err := os.WriteFile(binPath+suffix, out.Bytes(), 0664); err != nil {
 						t.Fatal(err)
 					}
 				}
@@ -454,7 +498,13 @@ func mustHaveCopyrightHeader(t *testing.T, files []string) {
 	var bad []string
 File:
 	for _, file := range files {
-		b, err := ioutil.ReadFile(file)
+		if strings.HasSuffix(file, "internal/testprotos/conformance/editions/test_messages_edition2023.pb.go") {
+			// TODO(lassefolger) the underlying proto file is checked into
+			// the protobuf repo without a copyright header. Fix is pending but
+			// might require a release.
+			continue
+		}
+		b, err := os.ReadFile(file)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -500,4 +550,21 @@ func (c command) mustRun(t *testing.T, args ...string) string {
 func mustRunCommand(t *testing.T, args ...string) string {
 	t.Helper()
 	return command{}.mustRun(t, args...)
+}
+
+// race is an approximation of whether the race detector is on.
+// It's used to skip the integration test on builders, without
+// preventing the integration test from running under the race
+// detector as a '//go:build !race' build constraint would.
+func race() bool {
+	bi, ok := debug.ReadBuildInfo()
+	if !ok {
+		return false
+	}
+	for _, setting := range bi.Settings {
+		if setting.Key == "-race" {
+			return setting.Value == "true"
+		}
+	}
+	return false
 }

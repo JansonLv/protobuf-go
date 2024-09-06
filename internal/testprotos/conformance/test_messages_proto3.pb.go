@@ -1,32 +1,9 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 //
 // Test schema for proto3 messages.  This test schema is used by:
 //
@@ -367,6 +344,7 @@ type TestAllTypesProto3 struct {
 	MapStringNestedEnum     map[string]TestAllTypesProto3_NestedEnum     `protobuf:"bytes,73,rep,name=map_string_nested_enum,json=mapStringNestedEnum,proto3" json:"map_string_nested_enum,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=protobuf_test_messages.proto3.TestAllTypesProto3_NestedEnum"`
 	MapStringForeignEnum    map[string]ForeignEnum                       `protobuf:"bytes,74,rep,name=map_string_foreign_enum,json=mapStringForeignEnum,proto3" json:"map_string_foreign_enum,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3,enum=protobuf_test_messages.proto3.ForeignEnum"`
 	// Types that are assignable to OneofField:
+	//
 	//	*TestAllTypesProto3_OneofUint32
 	//	*TestAllTypesProto3_OneofNestedMessage
 	//	*TestAllTypesProto3_OneofString
@@ -435,11 +413,9 @@ type TestAllTypesProto3 struct {
 
 func (x *TestAllTypesProto3) Reset() {
 	*x = TestAllTypesProto3{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *TestAllTypesProto3) String() string {
@@ -450,7 +426,7 @@ func (*TestAllTypesProto3) ProtoMessage() {}
 
 func (x *TestAllTypesProto3) ProtoReflect() protoreflect.Message {
 	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -1603,11 +1579,9 @@ type ForeignMessage struct {
 
 func (x *ForeignMessage) Reset() {
 	*x = ForeignMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *ForeignMessage) String() string {
@@ -1618,7 +1592,7 @@ func (*ForeignMessage) ProtoMessage() {}
 
 func (x *ForeignMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -1648,11 +1622,9 @@ type NullHypothesisProto3 struct {
 
 func (x *NullHypothesisProto3) Reset() {
 	*x = NullHypothesisProto3{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *NullHypothesisProto3) String() string {
@@ -1663,7 +1635,7 @@ func (*NullHypothesisProto3) ProtoMessage() {}
 
 func (x *NullHypothesisProto3) ProtoReflect() protoreflect.Message {
 	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -1686,11 +1658,9 @@ type EnumOnlyProto3 struct {
 
 func (x *EnumOnlyProto3) Reset() {
 	*x = EnumOnlyProto3{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[3]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *EnumOnlyProto3) String() string {
@@ -1701,7 +1671,7 @@ func (*EnumOnlyProto3) ProtoMessage() {}
 
 func (x *EnumOnlyProto3) ProtoReflect() protoreflect.Message {
 	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[3]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -1727,11 +1697,9 @@ type TestAllTypesProto3_NestedMessage struct {
 
 func (x *TestAllTypesProto3_NestedMessage) Reset() {
 	*x = TestAllTypesProto3_NestedMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[4]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
+	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
 }
 
 func (x *TestAllTypesProto3_NestedMessage) String() string {
@@ -1742,7 +1710,7 @@ func (*TestAllTypesProto3_NestedMessage) ProtoMessage() {}
 
 func (x *TestAllTypesProto3_NestedMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_google_protobuf_test_messages_proto3_proto_msgTypes[4]
-	if protoimpl.UnsafeEnabled && x != nil {
+	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
@@ -2551,7 +2519,7 @@ func file_google_protobuf_test_messages_proto3_proto_rawDescGZIP() []byte {
 
 var file_google_protobuf_test_messages_proto3_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_google_protobuf_test_messages_proto3_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
-var file_google_protobuf_test_messages_proto3_proto_goTypes = []interface{}{
+var file_google_protobuf_test_messages_proto3_proto_goTypes = []any{
 	(ForeignEnum)(0),                         // 0: protobuf_test_messages.proto3.ForeignEnum
 	(TestAllTypesProto3_NestedEnum)(0),       // 1: protobuf_test_messages.proto3.TestAllTypesProto3.NestedEnum
 	(TestAllTypesProto3_AliasedEnum)(0),      // 2: protobuf_test_messages.proto3.TestAllTypesProto3.AliasedEnum
@@ -2682,69 +2650,7 @@ func file_google_protobuf_test_messages_proto3_proto_init() {
 	if File_google_protobuf_test_messages_proto3_proto != nil {
 		return
 	}
-	if !protoimpl.UnsafeEnabled {
-		file_google_protobuf_test_messages_proto3_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TestAllTypesProto3); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_google_protobuf_test_messages_proto3_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ForeignMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_google_protobuf_test_messages_proto3_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NullHypothesisProto3); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_google_protobuf_test_messages_proto3_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EnumOnlyProto3); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_google_protobuf_test_messages_proto3_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TestAllTypesProto3_NestedMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
-	file_google_protobuf_test_messages_proto3_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_google_protobuf_test_messages_proto3_proto_msgTypes[0].OneofWrappers = []any{
 		(*TestAllTypesProto3_OneofUint32)(nil),
 		(*TestAllTypesProto3_OneofNestedMessage)(nil),
 		(*TestAllTypesProto3_OneofString)(nil),
